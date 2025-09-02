@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODIN - Interactive Mission Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Latte -->
+    <!-- Application Structure Plan: The application is structured as a single-page dashboard with a clear narrative flow, designed for intuitive exploration. It starts with a high-level 'Mission Overview' to frame the problem, followed by a 'System Architecture' section that uses an interactive diagram to explain the components. The 'Live Simulation' section provides a tangible mock-up of the ODIN dashboard in action, making the concept concrete. A 'Technology Stack' section details the tools, and a final 'Project Roadmap' outlines the vision. This thematic structure was chosen over a linear report format to allow users (e.g., judges) to quickly grasp the most critical aspects—what it is, how it works, and what it looks like in operation—in a non-linear, engaging way. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: System Workflow -> Goal: Organize/Explain -> Viz/Method: Interactive HTML/CSS flowchart -> Interaction: Hover to highlight stages -> Justification: Visually breaks down the complex agent loop into understandable, sequential steps, enhancing comprehension.
+        - Report Info: Mission Trade-offs Data -> Goal: Compare -> Viz/Method: Bar Chart (Chart.js) -> Interaction: Tooltips on hover show precise data -> Justification: Provides a clear, quantitative comparison of trajectory options, making the agent's decision-making process transparent.
+        - Report Info: Trajectory Plot -> Goal: Change/Relationships -> Viz/Method: 3D Scatter Plot (Plotly.js) -> Interaction: Pan/zoom/rotate -> Justification: Offers an immersive and intuitive way to visualize the primary and alternative trajectories in 3D space, which is more impactful than a static 2D image.
+        - Report Info: Tech Stack -> Goal: Inform -> Viz/Method: Interactive Cards (HTML/CSS/JS) -> Interaction: Click to reveal details -> Justification: Presents dense technical information in a clean, digestible format that encourages user engagement.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF8E7; /* Cosmic Latte */
+            color: #4A4A4A;
+        }
+        .glass-pane {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            display: block;
+            margin-top: 5px;
+            right: 0;
+            background: #FF6B6B;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+            left: 0;
+            background: #FF6B6B;
+        }
+        .active-link {
+            color: #FF6B6B;
+            font-weight: 600;
+        }
+        .active-link:after {
+             width: 100%;
+            left: 0;
+            background: #FF6B6B;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .tech-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="sticky top-0 z-50 glass-pane">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-[#4A5568]">
+                ODIN<span class="text-[#FF6B6B]">.</span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#overview" class="nav-link active-link">Overview</a>
+                <a href="#architecture" class="nav-link">Architecture</a>
+                <a href="#simulation" class="nav-link">Simulation</a>
+                <a href="#stack" class="nav-link">Tech Stack</a>
+                <a href="#roadmap" class="nav-link">Roadmap</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-[#4A5568] focus:outline-none">
+                     <span class="w-6 h-1 bg-current block mb-1"></span>
+                     <span class="w-6 h-1 bg-current block mb-1"></span>
+                     <span class="w-6 h-1 bg-current block"></span>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+             <a href="#overview" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Overview</a>
+             <a href="#architecture" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Architecture</a>
+             <a href="#simulation" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Simulation</a>
+             <a href="#stack" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Tech Stack</a>
+             <a href="#roadmap" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Roadmap</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="overview" class="min-h-screen flex items-center">
+            <div class="w-full">
+                <h1 class="text-5xl md:text-7xl font-bold text-center mb-6 leading-tight">
+                    Autonomous Resilience in Deep Space
+                </h1>
+                <p class="text-lg md:text-xl text-center max-w-3xl mx-auto text-gray-600 mb-12">
+                    The Optimal Dynamic Interplanetary Navigator (ODIN) is an agentic AI that autonomously plans, monitors, and dynamically adapts spacecraft trajectories, ensuring mission success in the face of unforeseen hazards.
+                </p>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Agentic AI Core</h3>
+                        <p class="text-gray-600">At its heart, ODIN is a stateful AI agent that reasons, plans, and acts to protect the mission.</p>
+                    </div>
+                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Dynamic Replanning</h3>
+                        <p class="text-gray-600">Continuously processes real-world data to detect threats and reroute in real-time.</p>
+                    </div>
+                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Explainable Decisions</h3>
+                        <p class="text-gray-600">Generates human-readable logs to justify every decision, turning a "black box" AI into a transparent "glass box".</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="py-20">
+            <h2 class="text-4xl font-bold text-center mb-4">The ODIN Architecture</h2>
+            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
+                ODIN is built on a modular, agent-first design. Each component has a specialized role, orchestrated by the Autonomous Decision Core to create a continuous loop of monitoring, assessment, and action.
+            </p>
+            <div class="bg-white/80 p-8 rounded-2xl shadow-lg">
+                <div id="odin-loop-diagram" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center justify-center text-center">
+                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="monitor">
+                        <h4 class="font-bold text-lg">1. Monitor</h4>
+                        <p class="text-sm">Agent queries Hazard Intelligence Engine for threats along the current trajectory.</p>
+                    </div>
+                    <div class="flex justify-center items-center text-3xl text-gray-400">→</div>
+                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="detect">
+                        <h4 class="font-bold text-lg">2. Detect & Assess</h4>
+                        <p class="text-sm">If a threat is found (e.g., CME), the agent analyzes its severity and impact.</p>
+                    </div>
+                    <div class="flex justify-center items-center text-3xl text-gray-400 md:col-start-3">↓</div>
+                     <div class="loop-node p-4 border-2 border-gray-200 rounded-lg md:col-start-3" data-node="consult">
+                        <h4 class="font-bold text-lg">3. Consult</h4>
+                        <p class="text-sm">Agent prompts the LLM Co-Pilot for high-level mitigation strategies.</p>
+                    </div>
+                    <div class="flex justify-center items-center text-3xl text-gray-400 md:col-start-2">↓</div>
+                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg md:col-start-1" data-node="execute">
+                        <h4 class="font-bold text-lg">6. Execute</h4>
+                        <p class="text-sm">The new, safer trajectory is locked in. The agent returns to the Monitor state.</p>
+                    </div>
+                     <div class="flex justify-center items-center text-3xl text-gray-400">↑</div>
+                     <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="decide">
+                        <h4 class="font-bold text-lg">5. Decide & Justify</h4>
+                        <p class="text-sm">Agent weighs trade-offs (fuel, time, safety) and selects the optimal plan, logging its rationale.</p>
+                    </div>
+                    <div class="flex justify-center items-center text-3xl text-gray-400">←</div>
+                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="evaluate">
+                        <h4 class="font-bold text-lg">4. Generate & Evaluate</h4>
+                        <p class="text-sm">Agent directs the Trajectory Engine to compute the cost/benefit of each strategy.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulation" class="py-20">
+            <h2 class="text-4xl font-bold text-center mb-4">Live Mission Simulation</h2>
+            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
+                This mock-up demonstrates the ODIN Mission Control Dashboard during a critical replanning event. See how the system detects a hazard, evaluates options, and justifies its decision in real-time.
+            </p>
+            <div class="glass-pane rounded-2xl shadow-2xl overflow-hidden">
+                <div class="bg-[#2D3748] text-white p-4 flex justify-between items-center">
+                    <h3 class="font-bold text-xl">ODIN MISSION CONTROL</h3>
+                    <div id="mission-status" class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500 animate-pulse">
+                        STATUS: REPLANNING
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+                    <div class="lg:col-span-2 bg-white/50 rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 text-center">Trajectory Plot (Earth-Moon Transfer)</h4>
+                        <div id="trajectoryPlot" class="w-full h-[400px] md:h-[500px]"></div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+                            <h4 class="font-bold">HAZARD ALERT</h4>
+                            <p class="text-sm">CME DETECTED - SOURCE: NASA DONKI - CLASS: X1.2 FLARE</p>
+                        </div>
+                        <div class="bg-white/50 rounded-lg p-4 h-[400px] md:h-auto">
+                            <h4 class="font-semibold mb-2">Decision Justification Log</h4>
+                            <div id="decision-log" class="bg-gray-800 text-white font-mono text-xs p-3 rounded-md h-full overflow-y-auto">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-white/50">
+                     <h4 class="font-semibold mb-2 text-center">Trade-Off Analysis</h4>
+                     <p class="text-sm text-center text-gray-600 mb-4">The agent's quantitative evaluation of all available options.</p>
+                     <div class="chart-container h-64 md:h-80">
+                        <canvas id="tradeoffChart"></canvas>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="stack" class="py-20">
+            <h2 class="text-4xl font-bold text-center mb-4">Technology Stack</h2>
+             <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
+                ODIN is built on a foundation of powerful, open-source technologies, strategically chosen to prioritize rapid development, agentic control, and reliable performance.
+            </p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
+                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Poliastro</h3>
+                    <p class="text-gray-600">A pure Python library for astrodynamics, enabling rapid prototyping of orbital mechanics and trajectory calculations.</p>
+                </div>
+                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
+                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">LangGraph</h3>
+                    <p class="text-gray-600">The framework for building the stateful, cyclical agent. It allows for precise control over the agent's reasoning loop.</p>
+                </div>
+                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
+                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Hugging Face</h3>
+                    <p class="text-gray-600">Provides access to efficient, open-source LLMs (like Phi-3 or Mistral) for the generative strategy co-pilot.</p>
+                </div>
+                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
+                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Plotly & Chart.js</h3>
+                    <p class="text-gray-600">Power the interactive visualizations, from the 3D trajectory plot to the trade-off analysis charts.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="py-20">
+            <h2 class="text-4xl font-bold text-center mb-4">Future Scope</h2>
+            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
+                ODIN is more than a hackathon project; it's a scalable platform for the future of autonomous mission management.
+            </p>
+            <div class="space-y-8">
+                <div class="md:flex items-center">
+                    <div class="md:w-1/2 p-4">
+                        <h3 class="text-2xl font-semibold mb-2">Near-Term: Higher Fidelity & Expanded Missions</h3>
+                        <p class="text-gray-600">The immediate next steps involve integrating high-fidelity physics engines like Orekit and adapting the agent for new mission profiles, such as Mars transfers or station-keeping at Lagrange points.</p>
+                    </div>
+                    <div class="md:w-1/2 p-4">
+                         <div class="bg-white/80 rounded-lg p-6 shadow-md">
+                            <h4 class="font-bold">Key Milestones (1-2 Years)</h4>
+                            <ul class="list-disc list-inside mt-2 text-gray-600">
+                                <li>Integrate Orekit for multi-body physics.</li>
+                                <li>Develop mission modules for Mars & L-points.</li>
+                                <li>Enhance hazard models with predictive data.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:flex flex-row-reverse items-center">
+                    <div class="md:w-1/2 p-4">
+                        <h3 class="text-2xl font-semibold mb-2">Long-Term: Proactive Planning & Onboard Autonomy</h3>
+                        <p class="text-gray-600">The ultimate vision is to evolve ODIN from a reactive system to a proactive planner that optimizes entire mission campaigns based on long-range forecasts, eventually running on-board spacecraft for true, untethered autonomy.</p>
+                    </div>
+                    <div class="md:w-1/2 p-4">
+                        <div class="bg-white/80 rounded-lg p-6 shadow-md">
+                             <h4 class="font-bold">Vision (3-5 Years)</h4>
+                             <ul class="list-disc list-inside mt-2 text-gray-600">
+                                <li>Integrate predictive space weather models.</li>
+                                <li>Develop multi-agent coordination for fleets.</li>
+                                <li>Optimize models for rad-hardened onboard computers.</li>
+                             </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 ODIN Project. A conceptual demonstration for the Interplanetary Navigator Challenge.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link, #mobile-menu a');
+            const sections = document.querySelectorAll('section');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.5
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            link.classList.remove('active-link');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active-link');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector(link.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    if (mobileMenu.classList.contains('hidden') === false) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const loopNodes = document.querySelectorAll('.loop-node');
+            loopNodes.forEach(node => {
+                node.addEventListener('mouseenter', () => {
+                    node.style.borderColor = '#FF6B6B';
+                    node.style.transform = 'scale(1.05)';
+                });
+                node.addEventListener('mouseleave', () => {
+                    node.style.borderColor = '#E5E7EB';
+                    node.style.transform = 'scale(1)';
+                });
+            });
+            
+            function typeDecisionLog() {
+                const logElement = document.getElementById('decision-log');
+                const logText = [
+                    "10:00:01Z STATUS: Nominal trajectory active. All systems green.",
+                    "10:15:22Z ALERT: Hazard detected. Source: NASA DONKI. Type: Solar Flare (FLR).",
+                    "10:15:25Z ANALYSIS: Flare Class X1.2 detected. CME poses significant radiation risk.",
+                    "10:15:26Z ANALYSIS: Projected dose on current trajectory: +9.8 rem/hr. Threshold exceeded.",
+                    "10:15:30Z CONSULT: Prompting Generative Co-Pilot for mitigation options...",
+                    "10:16:05Z OPTIONS RECEIVED: [Delay Burn, Lunar Shadow, Polar Escape].",
+                    "10:16:10Z EVALUATION: Computing mission trade-offs for all options...",
+                    "10:17:00Z DECISION: Selected 'Lunar Shadow Trajectory'. Optimal balance of safety, fuel, and time.",
+                    "10:17:05Z EXECUTE: Rerouting complete. New trajectory locked and active."
+                ];
+                let lineIndex = 0;
+                let charIndex = 0;
+                logElement.innerHTML = '';
+
+                function type() {
+                    if (lineIndex < logText.length) {
+                        if (charIndex < logText[lineIndex].length) {
+                            logElement.innerHTML += logText[lineIndex].charAt(charIndex);
+                            charIndex++;
+                            setTimeout(type, 20);
+                        } else {
+                            logElement.innerHTML += '<br>';
+                            lineIndex++;
+                            charIndex = 0;
+                            logElement.scrollTop = logElement.scrollHeight;
+                            setTimeout(type, 500);
+                        }
+                    }
+                }
+                type();
+            }
+
+            function createTradeoffChart() {
+                const ctx = document.getElementById('tradeoffChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Nominal Path', 'Delay Burn', 'Lunar Shadow', 'Polar Escape'],
+                        datasets: [{
+                            label: 'Travel Time Increase (Hours)',
+                            data: [0, 12, 6.5, 8],
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: 'ΔV Cost (m/s)',
+                            data: [0, 5, 45, 110],
+                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Safety Margin (%)',
+                            data: [-98, 70, 99, 99],
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + (this.chart.data.datasets[2].label.includes('Safety') ? '%' : '');
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y;
+                                            if(context.datasetIndex === 0) label += ' hrs';
+                                            if(context.datasetIndex === 1) label += ' m/s';
+                                            if(context.datasetIndex === 2) label += '%';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: false,
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createTrajectoryPlot() {
+                const plotDiv = document.getElementById('trajectoryPlot');
+                
+                const earthTrace = {
+                    x: [0], y: [0], z: [0],
+                    mode: 'markers',
+                    marker: {
+                        color: 'blue',
+                        size: 12,
+                        symbol: 'circle'
+                    },
+                    name: 'Earth',
+                    type: 'scatter3d'
+                };
+
+                const moonTrace = {
+                    x: [384400], y: [0], z: [0],
+                    mode: 'markers',
+                    marker: {
+                        color: 'grey',
+                        size: 8,
+                        symbol: 'circle'
+                    },
+                    name: 'Moon',
+                    type: 'scatter3d'
+                };
+
+                function generateArc(radius, start, end, steps) {
+                    const x = [], y = [], z = [];
+                    for (let i = 0; i <= steps; i++) {
+                        const theta = start + (end - start) * i / steps;
+                        x.push(radius * Math.cos(theta));
+                        y.push(radius * Math.sin(theta));
+                        z.push(0);
+                    }
+                    return {x, y, z};
+                }
+
+                const nominalPath = generateArc(192200, 0, Math.PI, 100);
+                nominalPath.x = nominalPath.x.map(val => val + 192200);
+
+                const nominalTrace = {
+                    ...nominalPath,
+                    mode: 'lines',
+                    line: {
+                        color: 'red',
+                        width: 4,
+                        dash: 'dash'
+                    },
+                    name: 'Hazardous Trajectory',
+                    type: 'scatter3d'
+                };
+                
+                const safePath = generateArc(220000, 0, Math.PI, 100);
+                safePath.x = safePath.x.map(val => val + 192200);
+                safePath.z = safePath.y.map(val => val * 0.5); 
+
+                const safeTrace = {
+                    ...safePath,
+                    mode: 'lines',
+                    line: {
+                        color: 'green',
+                        width: 6
+                    },
+                    name: 'Safe Trajectory',
+                    type: 'scatter3d'
+                };
+
+                const layout = {
+                    title: 'Trajectory Replan',
+                    showlegend: true,
+                    margin: { l: 0, r: 0, b: 0, t: 40 },
+                    scene: {
+                        xaxis: { title: 'X (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
+                        yaxis: { title: 'Y (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
+                        zaxis: { title: 'Z (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
+                        camera: {
+                            eye: {x: 1.5, y: 1.5, z: 1.5}
+                        },
+                        aspectmode: 'data'
+                    },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)'
+                };
+
+                Plotly.newPlot(plotDiv, [earthTrace, moonTrace, nominalTrace, safeTrace], layout, {responsive: true});
+            }
+
+            const simulationObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        typeDecisionLog();
+                        createTradeoffChart();
+                        createTrajectoryPlot();
+                        simulationObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            simulationObserver.observe(document.getElementById('simulation'));
+        });
+    </script>
+</body>
+</html>
