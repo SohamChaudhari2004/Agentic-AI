@@ -60,7 +60,7 @@ Gemini_client = OpenAIChatCompletionClient(
 # )
 
 # llm = ChatMistralAI(
-#     api_key= 'wdRPqlYhnNnML2PVDygaSZdTgNIuug9A',
+#     api_key= mistral_api_key,
 #     model_name ="mistral-large-latest",
 #     temperature=0.7
 # )
