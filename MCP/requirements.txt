@@ -1,0 +1,8 @@
+mcp[cli]
+python-dotenv
+google-generativeai
+langchain-mistralai
+mistralai
+ipykernel
+httpx 
+uv

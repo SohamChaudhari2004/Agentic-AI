@@ -1,0 +1,14 @@
+[project]
+name = "stock-mcp"
+version = "0.1.0"
+description = "Stock MCP Server and Agent"
+requires-python = ">=3.10"
+dependencies = [
+    "langchain>=0.3.14",
+    "langchain-core>=0.3.25",
+    "langchain-groq>=0.2.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "yfinance>=0.2.40",
+    "mcp>=1.0.0",
+]

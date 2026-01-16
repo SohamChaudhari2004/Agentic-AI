@@ -1,0 +1,1 @@
+mcp dev filename.py -> to run development server

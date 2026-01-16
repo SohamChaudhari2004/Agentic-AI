@@ -12,6 +12,7 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 from functools import lru_cache
 import traceback  # new import for richer logging
 from groq import Groq
+from datetime import datetime  # Add datetime for timestamping files
 
 # asyncio.Semaphore(3)
 
@@ -51,6 +52,7 @@ Gemini_client = OpenAIChatCompletionClient(
     api_key=gemini_api_key,
     model='gemini-2.5-flash'
 )
+
 
 
 # Mistral_client = OpenAIChatCompletionClient(
@@ -164,28 +166,35 @@ async def create_travel_agent_system():
     logging.info("==============================================\n")
 
     
-    travel_team = SelectorGroupChat(
+    # travel_team = SelectorGroupChat(
+    #     name="TravelPlanningTeam",
+    #     max_selector_attempts=5,
+    #     model_client=gemini_client,
+    #     description="Group chat for travel planning agents. Choose only the necessary agents based on the user query and keep the response limited to the user query." \
+    #     " Once there is no need to involve additional agents, the conversation should be ended with the one of the flags [final answer, task_complete, satisfied]." \
+    #     " NO JARGON." \
+    #     "NO PREAMBLE",
+    #     participants=[
+    #         destination_agent,
+    #         itinerary_agent,
+    #         budget_agent,
+    #         logistics_agent,
+    #         report_agent
+    #     ]
+
+    # )
+
+    travel_team = RoundRobinGroupChat(
         name="TravelPlanningTeam",
-        max_selector_attempts=5,
-        model_client=gemini_client,
-        description="Group chat for travel planning agents. Choose only the necessary agents based on the user query and keep the response limited to the user query." \
-        " Once there is no need to involve additional agents, the conversation should be ended with the one of the flags [final answer, task_complete, satisfied]." \
-        " NO JARGON." \
-        "NO PREAMBLE",
         participants=[
             destination_agent,
             itinerary_agent,
             budget_agent,
             logistics_agent,
             report_agent
-        ]
-
+        ],
+        max_turns=5  # One turn per agent (5 agents)
     )
-    # travel_team = SelectorGroupChat(
-    #     name="TravelPlanningTeam",
-    #     max_selector_attempts=5,
-    #     model_client=gemini_client,
-    #     description="Group chat for travel planning agents. Choose only the necessary agents based on the user query and keep the response limited to the user query." \
     #     " Once there is no need to involve additional agents, the conversation should be ended with the one of the flags [final answer, task_complete, satisfied]." \
     #     " NO JARGON." \
     #     "NO PREAMBLE",
@@ -210,13 +219,17 @@ async def call_with_retries(func, *args, retries=5, backoff_factor=2, **kwargs):
     while attempt < retries:
         try:
             return await func(*args, **kwargs)
+        except asyncio.CancelledError:
+            # Re-raise cancellation immediately - don't retry
+            logging.warning("Operation was cancelled by user (Ctrl+C)")
+            raise
         except Exception as e:
             # log full traceback for diagnostics
             logging.warning(f"Attempt {attempt + 1}/{retries} failed with: {e}")
             logging.debug(traceback.format_exc())
             err_str = str(e).lower()
-            # retry on rate limits, transient network issues or if the underlying client returned an unexpected response
-            if "ratelimit" in err_str or "rate limit" in err_str or "timeout" in err_str or "temporar" in err_str:
+            # retry on rate limits, transient network issues, 503 service unavailable
+            if any(keyword in err_str for keyword in ["ratelimit", "rate limit", "timeout", "temporar", "503", "service unavailable", "overloaded"]):
                 wait_time = backoff_factor ** attempt
                 logging.warning(f"Transient error detected. Retrying in {wait_time} seconds...")
                 await asyncio.sleep(wait_time)
@@ -253,7 +266,7 @@ async def plan_travel(travel_request: str):
 
         # Execute the travel planning workflow with retries
         logging.info("Calling travel_system.run with retries...")
-        result = await call_with_retries(travel_system.run, task=enhanced_prompt)
+        result = await call_with_retries(travel_system.run, task=enhanced_prompt, retries=3)
 
         # Defensive validation of result
         if result is None:
@@ -273,6 +286,28 @@ async def plan_travel(travel_request: str):
         logging.debug(traceback.format_exc())
         raise RuntimeError(f"❌ Error during travel planning: {str(e)}")
 
+def save_output_to_file(content: str, output_dir: str = "d:\\AIML\\Research\\autogen\\outputs") -> str:
+    """Save the travel plan output to a text file with timestamp."""
+    try:
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"travel_plan_{timestamp}.txt"
+        filepath = os.path.join(output_dir, filename)
+        
+        # Write content to file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        logging.info(f"✅ Travel plan saved to: {filepath}")
+        return filepath
+    except Exception as e:
+        logging.error(f"❌ Error saving output to file: {str(e)}")
+        logging.debug(traceback.format_exc())
+        raise
+
 # Example usage
 async def main():
     travel_request = """
@@ -281,6 +316,10 @@ async def main():
 
     try:
         travel_plan = await plan_travel(travel_request)
+        
+        # Extract content from travel_plan
+        content_to_save = None
+        
         # Safely print the final assistant message content if available
         if travel_plan is None:
             print("No travel plan was returned.")
@@ -291,16 +330,34 @@ async def main():
                 last = msgs[-1]
                 # some frameworks wrap content differently; attempt multiple access patterns
                 content = getattr(last, "content", None) or (last.get("content") if isinstance(last, dict) else None)
-                print(content if content is not None else repr(last))
+                content_to_save = content if content is not None else repr(last)
+                print(content_to_save)
             else:
-                print(repr(travel_plan))
+                content_to_save = repr(travel_plan)
+                print(content_to_save)
         else:
             # fallback: pretty-print whatever the run returned
-            print(repr(travel_plan))
+            content_to_save = repr(travel_plan)
+            print(content_to_save)
+        
+        # Save to file if we have content
+        if content_to_save:
+            saved_file = save_output_to_file(content_to_save)
+            print(f"\n📄 Output saved to: {saved_file}")
+        else:
+            logging.warning("No content available to save to file.")
+            
+    except KeyboardInterrupt:
+        logging.warning("\n⚠️  Process interrupted by user (Ctrl+C)")
+        print("\n⚠️  Travel planning was interrupted. Please try again.")
     except Exception as e:
         logging.error(f"❌ Error occurred: {str(e)}")
         logging.debug(traceback.format_exc())
-        logging.error("Please check your GEMINI/Mistral API keys and internet connection.")
+        print(f"\n❌ Error: {str(e)}")
+        print("Please check:")
+        print("  1. Your GEMINI_API_KEY is valid and has available quota")
+        print("  2. Your internet connection is stable")
+        print("  3. Google's Gemini API service is available (not experiencing outages)")
 
 # Run the travel planning system
 if __name__ == "__main__":

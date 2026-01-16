@@ -1,65 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ODIN - Interactive Mission Dashboard</title>
+    <title>Capgemini Interactive Mock Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Cosmic Latte -->
-    <!-- Application Structure Plan: The application is structured as a single-page dashboard with a clear narrative flow, designed for intuitive exploration. It starts with a high-level 'Mission Overview' to frame the problem, followed by a 'System Architecture' section that uses an interactive diagram to explain the components. The 'Live Simulation' section provides a tangible mock-up of the ODIN dashboard in action, making the concept concrete. A 'Technology Stack' section details the tools, and a final 'Project Roadmap' outlines the vision. This thematic structure was chosen over a linear report format to allow users (e.g., judges) to quickly grasp the most critical aspects—what it is, how it works, and what it looks like in operation—in a non-linear, engaging way. -->
-    <!-- Visualization & Content Choices: 
-        - Report Info: System Workflow -> Goal: Organize/Explain -> Viz/Method: Interactive HTML/CSS flowchart -> Interaction: Hover to highlight stages -> Justification: Visually breaks down the complex agent loop into understandable, sequential steps, enhancing comprehension.
-        - Report Info: Mission Trade-offs Data -> Goal: Compare -> Viz/Method: Bar Chart (Chart.js) -> Interaction: Tooltips on hover show precise data -> Justification: Provides a clear, quantitative comparison of trajectory options, making the agent's decision-making process transparent.
-        - Report Info: Trajectory Plot -> Goal: Change/Relationships -> Viz/Method: 3D Scatter Plot (Plotly.js) -> Interaction: Pan/zoom/rotate -> Justification: Offers an immersive and intuitive way to visualize the primary and alternative trajectories in 3D space, which is more impactful than a static 2D image.
-        - Report Info: Tech Stack -> Goal: Inform -> Viz/Method: Interactive Cards (HTML/CSS/JS) -> Interaction: Click to reveal details -> Justification: Presents dense technical information in a clean, digestible format that encourages user engagement.
-    -->
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A tabbed interface to separate 'Pseudo Code' and 'IT Fundamentals' quizzes. This is more organized than a single long page. Users see one question at a time with instant feedback and rationale upon answering, enhancing the learning experience. A progress tracker and a final results page with a visual chart provide clear feedback on performance. This structure transforms a static document into an interactive study tool. -->
+    <!-- Visualization & Content Choices: Report Info: 100 MCQs (Pseudo Code & IT). Goal: Interactive practice. Viz/Presentation: One-question-at-a-time card layout with clear `<pre>` blocks for code. Interaction: Clickable answer buttons providing immediate color-coded feedback (green/red) and displaying the rationale from the original document's answer key. A final bar chart (Chart.js/Canvas) on the results page visualizes the score. Justification: This approach breaks down the test into manageable steps, provides instant learning reinforcement, and offers a clear performance summary. NO SVG/Mermaid used. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
+            background-color: #F5F5F4;
+            /* warm neutral background */
             font-family: 'Inter', sans-serif;
-            background-color: #FFF8E7; /* Cosmic Latte */
-            color: #4A4A4A;
         }
-        .glass-pane {
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+
+        .tab-active {
+            background-color: #4F46E5;
+            /* Indigo 600 */
+            color: white;
+            border-bottom-color: transparent;
         }
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
+
+        .tab-inactive {
+            background-color: #E5E7EB;
+            /* Gray 200 */
+            color: #4B5563;
+            /* Gray 600 */
         }
-        .nav-link:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            display: block;
-            margin-top: 5px;
-            right: 0;
-            background: #FF6B6B;
-            transition: width 0.3s ease;
+
+        .quiz-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .nav-link:hover:after {
-            width: 100%;
-            left: 0;
-            background: #FF6B6B;
+
+        .option-btn {
+            transition: all 0.2s ease-in-out;
         }
-        .active-link {
-            color: #FF6B6B;
-            font-weight: 600;
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .active-link:after {
-             width: 100%;
-            left: 0;
-            background: #FF6B6B;
+
+        .correct {
+            background-color: #10B981 !important;
+            /* Emerald 500 */
+            color: white !important;
+            border-color: #059669 !important;
         }
+
+        .incorrect {
+            background-color: #EF4444 !important;
+            /* Red 500 */
+            color: white !important;
+            border-color: #DC2626 !important;
+        }
+
+        .rationale {
+            background-color: #F3F4F6;
+            /* Gray 100 */
+            border-left: 4px solid #6B7280;
+            /* Gray 500 */
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+
+        pre {
+            background-color: #F3F4F6;
+            /* Gray 100 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            color: #111827;
+            /* Gray 900 */
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
         .chart-container {
             position: relative;
             width: 100%;
@@ -69,490 +94,560 @@
             height: 300px;
             max-height: 400px;
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .timer-display {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-label {
+            font-size: 0.875rem;
+            margin-right: 1rem;
+            opacity: 0.9;
+        }
+
+        .timer-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            animation: pulse 1s infinite;
+        }
+
+        .timer-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
             }
         }
-        .tech-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+        .timer-controls {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
         }
-        .tech-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+        .timer-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .timer-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .timer-progress-bar {
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            transition: width 1s linear;
         }
     </style>
 </head>
-<body class="antialiased">
-    <header class="sticky top-0 z-50 glass-pane">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="text-2xl font-bold text-[#4A5568]">
-                ODIN<span class="text-[#FF6B6B]">.</span>
-            </div>
-            <div class="hidden md:flex space-x-8">
-                <a href="#overview" class="nav-link active-link">Overview</a>
-                <a href="#architecture" class="nav-link">Architecture</a>
-                <a href="#simulation" class="nav-link">Simulation</a>
-                <a href="#stack" class="nav-link">Tech Stack</a>
-                <a href="#roadmap" class="nav-link">Roadmap</a>
-            </div>
-            <div class="md:hidden">
-                <button id="menu-btn" class="text-[#4A5568] focus:outline-none">
-                     <span class="w-6 h-1 bg-current block mb-1"></span>
-                     <span class="w-6 h-1 bg-current block mb-1"></span>
-                     <span class="w-6 h-1 bg-current block"></span>
-                </button>
-            </div>
+
+<body class="antialiased text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">Capgemini Interactive Mock Test</h1>
+            <p class="text-lg text-gray-600 mt-2">Test your knowledge in Pseudo Code and IT Fundamentals.</p>
+        </header>
+
+        <nav class="flex justify-center mb-8 rounded-lg p-1 bg-gray-200 w-full md:w-auto mx-auto">
+            <button id="pseudo-tab"
+                class="tab-btn py-2 px-6 rounded-md font-semibold focus:outline-none w-1/2 md:w-auto">Pseudo
+                Code</button>
+            <button id="it-tab" class="tab-btn py-2 px-6 rounded-md font-semibold focus:outline-none w-1/2 md:w-auto">IT
+                Fundamentals</button>
         </nav>
-        <div id="mobile-menu" class="hidden md:hidden">
-             <a href="#overview" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Overview</a>
-             <a href="#architecture" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Architecture</a>
-             <a href="#simulation" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Simulation</a>
-             <a href="#stack" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Tech Stack</a>
-             <a href="#roadmap" class="block py-2 px-4 text-sm hover:bg-[#FFE4B5]">Roadmap</a>
+
+        <main id="quiz-container">
+            <!-- Quiz content will be dynamically inserted here -->
+        </main>
+
+        <div id="results-container" class="hidden text-center quiz-card p-8">
+            <h2 id="results-title" class="text-3xl font-bold mb-4">Quiz Results</h2>
+            <p id="results-summary" class="text-xl mb-6"></p>
+            <div class="chart-container">
+                <canvas id="resultsChart"></canvas>
+            </div>
+            <button id="retry-btn"
+                class="mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Retry
+                Quiz</button>
         </div>
-    </header>
-
-    <main class="container mx-auto px-6 py-12">
-        <section id="overview" class="min-h-screen flex items-center">
-            <div class="w-full">
-                <h1 class="text-5xl md:text-7xl font-bold text-center mb-6 leading-tight">
-                    Autonomous Resilience in Deep Space
-                </h1>
-                <p class="text-lg md:text-xl text-center max-w-3xl mx-auto text-gray-600 mb-12">
-                    The Optimal Dynamic Interplanetary Navigator (ODIN) is an agentic AI that autonomously plans, monitors, and dynamically adapts spacecraft trajectories, ensuring mission success in the face of unforeseen hazards.
-                </p>
-                <div class="grid md:grid-cols-3 gap-8 text-center">
-                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
-                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Agentic AI Core</h3>
-                        <p class="text-gray-600">At its heart, ODIN is a stateful AI agent that reasons, plans, and acts to protect the mission.</p>
-                    </div>
-                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
-                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Dynamic Replanning</h3>
-                        <p class="text-gray-600">Continuously processes real-world data to detect threats and reroute in real-time.</p>
-                    </div>
-                    <div class="p-6 bg-white/70 rounded-xl shadow-md">
-                        <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Explainable Decisions</h3>
-                        <p class="text-gray-600">Generates human-readable logs to justify every decision, turning a "black box" AI into a transparent "glass box".</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="architecture" class="py-20">
-            <h2 class="text-4xl font-bold text-center mb-4">The ODIN Architecture</h2>
-            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
-                ODIN is built on a modular, agent-first design. Each component has a specialized role, orchestrated by the Autonomous Decision Core to create a continuous loop of monitoring, assessment, and action.
-            </p>
-            <div class="bg-white/80 p-8 rounded-2xl shadow-lg">
-                <div id="odin-loop-diagram" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center justify-center text-center">
-                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="monitor">
-                        <h4 class="font-bold text-lg">1. Monitor</h4>
-                        <p class="text-sm">Agent queries Hazard Intelligence Engine for threats along the current trajectory.</p>
-                    </div>
-                    <div class="flex justify-center items-center text-3xl text-gray-400">→</div>
-                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="detect">
-                        <h4 class="font-bold text-lg">2. Detect & Assess</h4>
-                        <p class="text-sm">If a threat is found (e.g., CME), the agent analyzes its severity and impact.</p>
-                    </div>
-                    <div class="flex justify-center items-center text-3xl text-gray-400 md:col-start-3">↓</div>
-                     <div class="loop-node p-4 border-2 border-gray-200 rounded-lg md:col-start-3" data-node="consult">
-                        <h4 class="font-bold text-lg">3. Consult</h4>
-                        <p class="text-sm">Agent prompts the LLM Co-Pilot for high-level mitigation strategies.</p>
-                    </div>
-                    <div class="flex justify-center items-center text-3xl text-gray-400 md:col-start-2">↓</div>
-                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg md:col-start-1" data-node="execute">
-                        <h4 class="font-bold text-lg">6. Execute</h4>
-                        <p class="text-sm">The new, safer trajectory is locked in. The agent returns to the Monitor state.</p>
-                    </div>
-                     <div class="flex justify-center items-center text-3xl text-gray-400">↑</div>
-                     <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="decide">
-                        <h4 class="font-bold text-lg">5. Decide & Justify</h4>
-                        <p class="text-sm">Agent weighs trade-offs (fuel, time, safety) and selects the optimal plan, logging its rationale.</p>
-                    </div>
-                    <div class="flex justify-center items-center text-3xl text-gray-400">←</div>
-                    <div class="loop-node p-4 border-2 border-gray-200 rounded-lg" data-node="evaluate">
-                        <h4 class="font-bold text-lg">4. Generate & Evaluate</h4>
-                        <p class="text-sm">Agent directs the Trajectory Engine to compute the cost/benefit of each strategy.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="simulation" class="py-20">
-            <h2 class="text-4xl font-bold text-center mb-4">Live Mission Simulation</h2>
-            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
-                This mock-up demonstrates the ODIN Mission Control Dashboard during a critical replanning event. See how the system detects a hazard, evaluates options, and justifies its decision in real-time.
-            </p>
-            <div class="glass-pane rounded-2xl shadow-2xl overflow-hidden">
-                <div class="bg-[#2D3748] text-white p-4 flex justify-between items-center">
-                    <h3 class="font-bold text-xl">ODIN MISSION CONTROL</h3>
-                    <div id="mission-status" class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500 animate-pulse">
-                        STATUS: REPLANNING
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
-                    <div class="lg:col-span-2 bg-white/50 rounded-lg p-4">
-                        <h4 class="font-semibold mb-2 text-center">Trajectory Plot (Earth-Moon Transfer)</h4>
-                        <div id="trajectoryPlot" class="w-full h-[400px] md:h-[500px]"></div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
-                            <h4 class="font-bold">HAZARD ALERT</h4>
-                            <p class="text-sm">CME DETECTED - SOURCE: NASA DONKI - CLASS: X1.2 FLARE</p>
-                        </div>
-                        <div class="bg-white/50 rounded-lg p-4 h-[400px] md:h-auto">
-                            <h4 class="font-semibold mb-2">Decision Justification Log</h4>
-                            <div id="decision-log" class="bg-gray-800 text-white font-mono text-xs p-3 rounded-md h-full overflow-y-auto">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-4 bg-white/50">
-                     <h4 class="font-semibold mb-2 text-center">Trade-Off Analysis</h4>
-                     <p class="text-sm text-center text-gray-600 mb-4">The agent's quantitative evaluation of all available options.</p>
-                     <div class="chart-container h-64 md:h-80">
-                        <canvas id="tradeoffChart"></canvas>
-                     </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="stack" class="py-20">
-            <h2 class="text-4xl font-bold text-center mb-4">Technology Stack</h2>
-             <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
-                ODIN is built on a foundation of powerful, open-source technologies, strategically chosen to prioritize rapid development, agentic control, and reliable performance.
-            </p>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
-                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Poliastro</h3>
-                    <p class="text-gray-600">A pure Python library for astrodynamics, enabling rapid prototyping of orbital mechanics and trajectory calculations.</p>
-                </div>
-                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
-                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">LangGraph</h3>
-                    <p class="text-gray-600">The framework for building the stateful, cyclical agent. It allows for precise control over the agent's reasoning loop.</p>
-                </div>
-                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
-                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Hugging Face</h3>
-                    <p class="text-gray-600">Provides access to efficient, open-source LLMs (like Phi-3 or Mistral) for the generative strategy co-pilot.</p>
-                </div>
-                <div class="tech-card bg-white/80 p-6 rounded-xl shadow-md text-center">
-                    <h3 class="text-xl font-semibold mb-2 text-[#4A5568]">Plotly & Chart.js</h3>
-                    <p class="text-gray-600">Power the interactive visualizations, from the 3D trajectory plot to the trade-off analysis charts.</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="roadmap" class="py-20">
-            <h2 class="text-4xl font-bold text-center mb-4">Future Scope</h2>
-            <p class="text-lg text-center max-w-2xl mx-auto text-gray-600 mb-12">
-                ODIN is more than a hackathon project; it's a scalable platform for the future of autonomous mission management.
-            </p>
-            <div class="space-y-8">
-                <div class="md:flex items-center">
-                    <div class="md:w-1/2 p-4">
-                        <h3 class="text-2xl font-semibold mb-2">Near-Term: Higher Fidelity & Expanded Missions</h3>
-                        <p class="text-gray-600">The immediate next steps involve integrating high-fidelity physics engines like Orekit and adapting the agent for new mission profiles, such as Mars transfers or station-keeping at Lagrange points.</p>
-                    </div>
-                    <div class="md:w-1/2 p-4">
-                         <div class="bg-white/80 rounded-lg p-6 shadow-md">
-                            <h4 class="font-bold">Key Milestones (1-2 Years)</h4>
-                            <ul class="list-disc list-inside mt-2 text-gray-600">
-                                <li>Integrate Orekit for multi-body physics.</li>
-                                <li>Develop mission modules for Mars & L-points.</li>
-                                <li>Enhance hazard models with predictive data.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="md:flex flex-row-reverse items-center">
-                    <div class="md:w-1/2 p-4">
-                        <h3 class="text-2xl font-semibold mb-2">Long-Term: Proactive Planning & Onboard Autonomy</h3>
-                        <p class="text-gray-600">The ultimate vision is to evolve ODIN from a reactive system to a proactive planner that optimizes entire mission campaigns based on long-range forecasts, eventually running on-board spacecraft for true, untethered autonomy.</p>
-                    </div>
-                    <div class="md:w-1/2 p-4">
-                        <div class="bg-white/80 rounded-lg p-6 shadow-md">
-                             <h4 class="font-bold">Vision (3-5 Years)</h4>
-                             <ul class="list-disc list-inside mt-2 text-gray-600">
-                                <li>Integrate predictive space weather models.</li>
-                                <li>Develop multi-agent coordination for fleets.</li>
-                                <li>Optimize models for rad-hardened onboard computers.</li>
-                             </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="bg-gray-800 text-white py-8">
-        <div class="container mx-auto px-6 text-center">
-            <p>&copy; 2025 ODIN Project. A conceptual demonstration for the Interplanetary Navigator Challenge.</p>
-        </div>
-    </footer>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuBtn = document.getElementById('menu-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-            menuBtn.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
+        const pseudoCodeQuestions = [
+            { question: "What is the output of the following pseudocode?", code: "Integer x = 10, y = 2\nwhile (x > y)\n  print \"In loop\"\n  x = x - 3\nEnd While", options: ["In loop In loop In loop", "In loop In loop", "In loop", "Infinite Loop"], answer: "In loop In loop In loop" },
+            { question: "What will be the value of `sum` after the loop?", code: "Integer n = 5, sum = 0, i = 1\nwhile (i <= n)\n  sum = sum + i\n  i = i + 2\nEnd While", options: ["15", "9", "6", "10"], answer: "9" },
+            { question: "What does the following function return for `n = 4`?", code: "Function factorial(Integer n)\n  if (n == 0)\n    return 1\n  else\n    return n * factorial(n - 1)\n  End If\nEnd Function", options: ["24", "12", "4", "0"], answer: "24" },
+            { question: "How many times will \"Hello\" be printed?", code: "Integer i, j\nfor (i = 1 to 3)\n  for (j = 1 to i)\n    print \"Hello\"\n  End For\nEnd For", options: ["9", "6", "3", "5"], answer: "6" },
+            { question: "What is the final value of `x`?", code: "Integer x = 4\nx = x << 2", options: ["8", "4", "16", "1"], answer: "16" },
+            { question: "What is the output for `a = 15, b = 4`?", code: "Integer a = 15, b = 4\na = a mod (a - 10)\nprint a", options: ["0", "3", "5", "15"], answer: "0" },
+            { question: "What will be printed?", code: "Integer arr[] = {10, 20, 30, 40}\nInteger p = &arr[1]\nInteger q = &arr[3]\nprint q - p", options: ["2", "20", "8", "Error"], answer: "2" },
+            { question: "What is the value of `result`?", code: "Integer a = 5, b = 10\nInteger result = (a > b) ? a : b\nprint result", options: ["5", "10", "0", "15"], answer: "10" },
+            { question: "What is the output of this code?", code: "Integer n = 123\nInteger sum = 0\nwhile (n > 0)\n  sum = sum + (n % 10)\n  n = n / 10\nEnd While\nprint sum", options: ["123", "6", "321", "0"], answer: "6" },
+            { question: "What does the function return for `fun(4, 3)`?", code: "Function fun(Integer a, Integer b)\n  if (b == 0)\n    return 1\n  End If\n  return a * fun(a, b - 1)\nEnd Function", options: ["64", "12", "81", "7"], answer: "64" },
+            { question: "What is the value of `x` after this code executes?", code: "Integer x = 10\nif (x > 5 AND x < 15)\n  x = x + 2\nelse\n  x = x - 2\nEnd If", options: ["10", "12", "8", "15"], answer: "12" },
+            { question: "What will be the output?", code: "Integer a = 5, b = 3, c = 2\nc = a & b\nprint c", options: ["1", "3", "5", "7"], answer: "1" },
+            { question: "What is the output of the following pseudocode?", code: "Integer i = 0\ndo\n  print i\n  i = i + 1\nwhile (i < 0)", options: ["1", "0", "No output", "Infinite loop"], answer: "0" },
+            { question: "What is the output of the function for `n = 5`?", code: "Function solve(Integer n)\n  if (n <= 1)\n    return n\n  End If\n  return solve(n-1) + solve(n-2)\nEnd Function", options: ["3", "5", "8", "4"], answer: "5" },
+            { question: "What will be the final value of `count`?", code: "Integer count = 0, i\nfor (i = 0; i < 5; i = i + 1)\n  if (i == 3)\n    continue\n  End If\n  count = count + 1\nEnd For", options: ["5", "4", "3", "2"], answer: "4" },
+            { question: "What is the output?", code: "Integer x = 3\nx = x >> 1\nprint x", options: ["1", "2", "6", "0"], answer: "1" },
+            { question: "How many times does the inner loop execute in total?", code: "Integer i, j, count = 0\nfor (i = 1 to 4)\n  for (j = 1 to 4)\n    count = count + 1\n  End For\nEnd For", options: ["4", "8", "16", "20"], answer: "16" },
+            { question: "What is the value of `c`?", code: "Integer a = 6, b = 4\nInteger c = a | b\nprint c", options: ["2", "4", "6", "7"], answer: "7" },
+            { question: "What will be printed?", code: "String str = \"Hello\"\nprint length(str)", options: ["4", "5", "6", "Error"], answer: "5" },
+            { question: "What is the output of this loop?", code: "Integer i = 1\nwhile (i < 10)\n  print i\n  i = i * 2\nEnd While", options: ["1 2 4 8", "1 2 3 4 5 6 7 8 9", "2 4 8 16", "1 2 4 8 16"], answer: "1 2 4 8" },
+            { question: "What will the array `arr` contain after execution?", code: "Integer arr[] = {1, 2, 3, 4, 5}\nInteger i\nfor (i = 0 to 4)\n  arr[i] = arr[i] * 2\nEnd For", options: ["{1, 2, 3, 4, 5}", "{2, 4, 6, 8, 10}", "{2, 3, 4, 5, 6}", "{0, 2, 4, 6, 8}"], answer: "{2, 4, 6, 8, 10}" },
+            { question: "What is the output for `a = 10, b = 20`?", code: "Procedure swap(Integer ref x, Integer ref y)\n  Integer temp = x\n  x = y\n  y = temp\nEnd Procedure\n\nInteger a = 10, b = 20\nswap(a, b)\nprint a, b", options: ["10, 20", "20, 10", "10, 10", "20, 20"], answer: "20, 10" },
+            { question: "What will be printed?", code: "Integer x = 5\nswitch (x)\n  case 1: print \"One\"\n  case 5: print \"Five\"\n  case 10: print \"Ten\"\n  default: print \"Other\"\nEnd Switch", options: ["One", "Five", "Ten", "Other"], answer: "Five" },
+            { question: "What is the value of `max`?", code: "Integer arr[] = {10, 50, 20, 80, 30}\nInteger max = arr[0], i\nfor (i = 1 to 4)\n  if (arr[i] > max)\n    max = arr[i]\n  End If\nEnd For\nprint max", options: ["10", "30", "50", "80"], answer: "80" },
+            { question: "What does this recursive function do for input `str = \"world\"`?", code: "Function reverse(String str)\n  if (length(str) == 0)\n    return \"\"\n  End If\n  return reverse(substring(str, 1)) + characterAt(str, 0)\nEnd Function", options: ["Returns \"world\"", "Returns \"dlrow\"", "Causes an infinite loop", "Returns \"d\""], answer: "Returns \"dlrow\"" },
+            { question: "What is the output for `x = 7`?", code: "Integer x = 7\nif (x % 2 == 0)\n  print \"Even\"\nelse\n  print \"Odd\"\nEnd If", options: ["Even", "Odd", "7", "Error"], answer: "Odd" },
+            { question: "What are the final values of `p` and `q`?", code: "Integer p = 10, q = 5\np = p + q\nq = p - q\np = p - q\nprint p, q", options: ["10, 5", "5, 10", "15, 10", "15, 5"], answer: "5, 10" },
+            { question: "What will the code print for `n = 13`?", code: "Function isPrime(Integer n)\n  Integer i\n  for (i = 2 to n/2)\n    if (n % i == 0)\n      return false\n    End If\n  End For\n  return true\nEnd Function\n\nprint isPrime(13)", options: ["true", "false", "13", "1"], answer: "true" },
+            { question: "What is the output?", code: "Integer x = 1, y = 1\nif ( !(x == 1 AND y == 0) )\n  print \"True\"\nelse\n  print \"False\"\nEnd If", options: ["True", "False", "No output", "Error"], answer: "True" },
+            { question: "What does the function return for `gcd(48, 18)`?", code: "Function gcd(Integer a, Integer b)\n  if (b == 0)\n    return a\n  End If\n  return gcd(b, a % b)\nEnd Function", options: ["2", "3", "6", "9"], answer: "6" },
+            { question: "What is the value of `sum`?", code: "Integer arr[] = {1, 2, 3, 4}\nInteger sum = 0, i\nfor (i = 0 to 3)\n  sum = sum + arr[i]\nEnd For\nprint sum", options: ["4", "6", "10", "24"], answer: "10" },
+            { question: "What will be the final value of `count`?", code: "Integer i = 5, count = 0\nwhile (i > 0)\n  count = count + 1\n  if (i == 3)\n    break\n  End If\n  i = i - 1\nEnd While", options: ["3", "5", "2", "1"], answer: "3" },
+            { question: "What is the output of the following code?", code: "Integer x = 2\nInteger y = 5\nInteger z = x ^ y\nprint z", options: ["7", "3", "10", "32"], answer: "7" },
+            { question: "What is the output?", code: "String s1 = \"Cap\"\nString s2 = \"gemini\"\nString result = s1 + s2\nprint result", options: ["Cap gemini", "Capgemini", "geminiCap", "Error"], answer: "Capgemini" },
+            { question: "What is printed for `grade = 85`?", code: "Integer grade = 85\nif (grade >= 90)\n  print \"A\"\nelse if (grade >= 80)\n  print \"B\"\nelse if (grade >= 70)\n  print \"C\"\nelse\n  print \"F\"\nEnd If", options: ["A", "B", "C", "F"], answer: "B" },
+            { question: "What is the value of `result`?", code: "Integer a = 10, b = 4\nReal result = a / b\nprint result", options: ["2", "2.5", "3", "Error"], answer: "2.5" },
+            { question: "What is the value of `min`?", code: "Integer arr[] = {30, 15, 40, 5, 25}\nInteger min = arr[0], i\nfor (i = 1 to 4)\n  if (arr[i] < min)\n    min = arr[i]\n  End If\nEnd For\nprint min", options: ["30", "15", "5", "25"], answer: "5" },
+            { question: "What is the output of `fun(3)`?", code: "Function fun(Integer n)\n  if (n <= 0)\n    return\n  End If\n  print n\n  fun(n - 1)\n  print n\nEnd Function", options: ["3 2 1 1 2 3", "3 2 1", "1 2 3 3 2 1", "3 3 2 2 1 1"], answer: "3 2 1 1 2 3" },
+            { question: "What does this code print?", code: "Integer x = 5\nwhile (x > 5)\n  print \"Looping\"\nEnd While\nprint \"Done\"", options: ["Looping", "Done", "Looping Done", "Infinite Loop"], answer: "Done" },
+            { question: "What is the ASCII value of 'A' printed as an integer?", code: "Character ch = 'A'\nprint (Integer)ch", options: ["1", "97", "65", "0"], answer: "65" },
+            { question: "What will be printed?", code: "Integer i\nfor (i = 0; i < 10; i = i + 3)\n  print i\nEnd For", options: ["0 3 6 9", "0 1 2 3 4 5 6 7 8 9", "3 6 9 12", "0 3 6"], answer: "0 3 6 9" },
+            { question: "What is the output for `x = 10` after the procedure call?", code: "Procedure modify(Integer val)\n  val = val + 5\nEnd Procedure\n\nInteger x = 10\nmodify(x)\nprint x", options: ["10", "15", "5", "Error"], answer: "10" },
+            { question: "What is the state of a queue after these operations: `enqueue(5)`, `enqueue(10)`, `dequeue()`, `enqueue(15)`?", code: "", options: ["5, 15", "10, 15", "5, 10", "15, 10"], answer: "10, 15" },
+            { question: "What is the state of a stack after these operations: `push(5)`, `push(10)`, `pop()`, `push(15)`?", code: "", options: ["5, 15", "15, 5", "10, 15", "15, 10"], answer: "5, 15" },
+            { question: "What is the value of `x`?", code: "Integer x = 5\nx = ~x", options: ["-5", "5", "-6", "4"], answer: "-6" },
+            { question: "What is the output?", code: "Integer x = 5, y = 10, z = 15\nif (x > y OR z > y AND x < z)\n  print \"True\"\nelse\n  print \"False\"\nEnd If", options: ["True", "False", "Error", "No Output"], answer: "True" },
+            { question: "What is the sum of the diagonal elements of this 2D array?", code: "Integer matrix[2][2] = {{1, 2}, {3, 4}}\nInteger sum = 0, i\nfor (i = 0 to 1)\n  sum = sum + matrix[i][i]\nEnd For\nprint sum", options: ["3", "5", "7", "10"], answer: "5" },
+            { question: "What does the function return for `power(2, 4)`?", code: "Function power(Integer base, Integer exp)\n  if (exp == 0)\n    return 1\n  End If\n  return base * power(base, exp - 1)\nEnd Function", options: ["8", "16", "6", "2"], answer: "16" },
+            { question: "What will be printed?", code: "Integer a = 2, b = 3\nprint \"a + b\"", options: ["5", "a + b", "2 + 3", "Error"], answer: "a + b" },
+            { question: "How many times is the condition `x < 10` checked?", code: "Integer x = 0\nwhile (x < 10)\n  x = x + 1\nEnd While", options: ["9", "10", "11", "0"], answer: "11" },
+        ];
+
+        const itFundamentalsQuestions = [
+            { question: "Which of the following is not an OOP concept?", options: ["Encapsulation", "Polymorphism", "Inheritance", "Compilation"], answer: "Compilation" },
+            { question: "What is the time complexity of a binary search algorithm?", options: ["O(n)", "O(log n)", "O(n^2)", "O(1)"], answer: "O(log n)" },
+            { question: "Which data structure uses LIFO (Last-In, First-Out)?", options: ["Queue", "Stack", "Linked List", "Tree"], answer: "Stack" },
+            { question: "In SQL, which command is used to select data from a database?", options: ["GET", "SELECT", "OPEN", "EXTRACT"], answer: "SELECT" },
+            { question: "Which layer of the OSI model is responsible for routing?", options: ["Physical Layer", "Data Link Layer", "Network Layer", "Transport Layer"], answer: "Network Layer" },
+            { question: "What does ACID stand for in database transactions?", options: ["Atomicity, Consistency, Isolation, Durability", "Atomicity, Concurrency, Integrity, Durability", "Availability, Consistency, Isolation, Durability", "Atomicity, Consistency, Integrity, Data"], answer: "Atomicity, Consistency, Isolation, Durability" },
+            { question: "Which of these is a non-linear data structure?", options: ["Array", "Stack", "Queue", "Tree"], answer: "Tree" },
+            { question: "What is the purpose of the `finally` block in exception handling?", options: ["It executes only when an exception occurs.", "It always executes whether an exception occurs or not.", "It is a block where exceptions are declared.", "It executes only when an exception does not occur."], answer: "It always executes whether an exception occurs or not." },
+            { question: "Which sorting algorithm has the worst-case time complexity of O(n^2)?", options: ["Merge Sort", "Quick Sort", "Heap Sort", "Bubble Sort"], answer: "Bubble Sort" },
+            { question: "What is a primary key in a database?", options: ["A key that can have NULL values.", "A key that uniquely identifies each record in a table.", "A key that is a foreign key in another table.", "A key used for sorting data only."], answer: "A key that uniquely identifies each record in a table." },
+            { question: "What is the main function of an Operating System?", options: ["Word Processing", "Database Management", "Resource Management", "Web Browsing"], answer: "Resource Management" },
+            { question: "Which protocol is used to send email?", options: ["FTP", "SMTP", "HTTP", "POP3"], answer: "SMTP" },
+            { question: "What does DNS stand for?", options: ["Domain Name System", "Dynamic Name System", "Domain Network Service", "Dynamic Network Service"], answer: "Domain Name System" },
+            { question: "Which of the following is an interpreted language?", options: ["C++", "Java", "C", "Python"], answer: "Python" },
+            { question: "The process of converting source code into machine code is called?", options: ["Execution", "Compilation", "Interpretation", "Debugging"], answer: "Compilation" },
+            { question: "In database normalization, what is 1NF?", options: ["No repeating groups", "All non-key attributes are fully functional on the primary key", "No transitive dependencies", "All attributes must be numeric"], answer: "No repeating groups" },
+            { question: "What is the difference between a process and a thread?", options: ["Processes share memory, threads do not", "Threads are heavyweight, processes are lightweight", "A process can have multiple threads", "Threads have their own separate memory space"], answer: "A process can have multiple threads" },
+            { question: "Which of the following is a cloud computing service model?", options: ["HTTP", "SaaS", "FTP", "TCP/IP"], answer: "SaaS" },
+            { question: "What does SQL stand for?", options: ["Structured Query Language", "Simple Query Language", "Standardized Query Language", "Sequential Query Language"], answer: "Structured Query Language" },
+            { question: "Which data structure is best for implementing a priority queue?", options: ["Stack", "Linked List", "Heap", "Array"], answer: "Heap" },
+            { question: "What type of software is Git?", options: ["A database", "An operating system", "A version control system", "A web server"], answer: "A version control system" },
+            { question: "What is method overriding?", options: ["Two methods with the same name but different parameters in the same class", "A subclass providing a specific implementation for a method defined in its superclass", "A method that cannot be called", "A method that calls itself"], answer: "A subclass providing a specific implementation for a method defined in its superclass" },
+            { question: "Which of these is NOT a valid IPv4 address?", options: ["192.168.1.1", "255.255.255.0", "10.0.0.256", "172.16.0.1"], answer: "10.0.0.256" },
+            { question: "What is the purpose of an index in a database?", options: ["To enforce uniqueness", "To speed up data retrieval", "To create relationships between tables", "To store large binary data"], answer: "To speed up data retrieval" },
+            { question: "Which software development model is iterative?", options: ["Waterfall", "V-Model", "Agile", "Big Bang"], answer: "Agile" },
+            { question: "What is a deadlock in an operating system?", options: ["A situation where two or more processes are waiting for each other to release a resource", "When a process uses too much memory", "When the CPU is idle", "When a process terminates unexpectedly"], answer: "A situation where two or more processes are waiting for each other to release a resource" },
+            { question: "Which layer of the TCP/IP model corresponds to the OSI model's Network layer?", options: ["Application", "Transport", "Internet", "Network Interface"], answer: "Internet" },
+            { question: "What is a Foreign Key?", options: ["A key that uniquely identifies a record in any table", "A key in one table that refers to the Primary Key in another table", "A key that is not unique", "A key used for encrypting data"], answer: "A key in one table that refers to the Primary Key in another table" },
+            { question: "The concept of hiding implementation details and showing only functionality is known as:", options: ["Inheritance", "Polymorphism", "Abstraction", "Encapsulation"], answer: "Abstraction" },
+            { question: "What is a MAC address?", options: ["A logical address for a network", "A physical address assigned to a network interface card (NIC)", "The address of a web server", "An address used for email"], answer: "A physical address assigned to a network interface card (NIC)" },
+            { question: "What is polymorphism?", options: ["The ability of an object to take on many forms", "The process of hiding data", "The process of creating a new class from an existing class", "A single function with the same name for different types"], answer: "The ability of an object to take on many forms" },
+            { question: "What is a key difference between TCP and UDP?", options: ["TCP is connectionless, UDP is connection-oriented", "TCP guarantees delivery, UDP does not", "TCP is faster than UDP", "TCP is used for video streaming, UDP for file transfers"], answer: "TCP guarantees delivery, UDP does not" },
+            { question: "What is an API?", options: ["An application that runs on a server", "A set of rules that allow applications to communicate with each other", "A type of database", "A programming language"], answer: "A set of rules that allow applications to communicate with each other" },
+            { question: "What is the main function of a compiler?", options: ["To run a program line by line", "To translate the entire source code into machine code at once", "To find and fix bugs in the code", "To manage system memory"], answer: "To translate the entire source code into machine code at once" },
+            { question: "What is virtual memory?", options: ["A part of the hard disk used as an extension of RAM", "Memory that does not physically exist", "The memory used by virtual machines", "A type of very fast memory"], answer: "A part of the hard disk used as an extension of RAM" },
+            { question: "In SQL, which statement removes all rows from a table without logging the individual row deletions?", options: ["DELETE", "DROP", "TRUNCATE", "REMOVE"], answer: "TRUNCATE" },
+            { question: "What is a firewall?", options: ["A software that detects and removes viruses", "A network security system that monitors and controls incoming and outgoing network traffic", "A device to connect multiple computers in a network", "A type of computer virus"], answer: "A network security system that monitors and controls incoming and outgoing network traffic" },
+            { question: "What is Big O notation used for?", options: ["To describe the performance or complexity of an algorithm", "To calculate the exact running time of a program", "To measure the size of a program", "To notate object-oriented code"], answer: "To describe the performance or complexity of an algorithm" },
+            { question: "What is an abstract class?", options: ["A class that cannot be instantiated", "A class with no methods", "A class that has only private members", "A class that exists only in theory"], answer: "A class that cannot be instantiated" },
+            { question: "What is the main difference between HTTP and HTTPS?", options: ["HTTPS is faster than HTTP", "HTTP is used for video, HTTPS for text", "HTTPS encrypts data, while HTTP sends it in plain text", "There is no difference"], answer: "HTTPS encrypts data, while HTTP sends it in plain text" },
+            { question: "What is Garbage Collection in programming?", options: ["Manually deleting unused variables", "A form of automatic memory management", "A process to clean the computer's hard drive", "A tool for removing syntax errors"], answer: "A form of automatic memory management" },
+            { question: "What is the primary role of a router in a network?", options: ["To connect devices within the same local network", "To filter network traffic based on MAC addresses", "To forward data packets between different computer networks", "To convert digital signals to analog signals"], answer: "To forward data packets between different computer networks" },
+            { question: "What is a constructor in object-oriented programming?", options: ["A method to destroy an object", "A special method for creating and initializing an object", "A regular method that can be called on an object", "A method to copy an object"], answer: "A special method for creating and initializing an object" },
+            { question: "What does SDLC stand for?", options: ["Software Development Life Cycle", "System Design Life Cycle", "Software Design Logic Course", "System Development Logic Circuit"], answer: "Software Development Life Cycle" },
+            { question: "What is the difference between static and dynamic typing?", options: ["Static typing is checked at compile-time, dynamic is at run-time", "Dynamic typing is faster than static typing", "Static typing is used in Python, dynamic in C++", "There is no difference"], answer: "Static typing is checked at compile-time, dynamic is at run-time" },
+            { question: "What is caching?", options: ["Encrypting data for security", "Storing copies of files or data in a temporary storage location so they can be accessed more quickly", "Compressing data to save space", "Deleting old files from a system"], answer: "Storing copies of files or data in a temporary storage location so they can be accessed more quickly" },
+            { question: "What is an interface in OOP?", options: ["A user interface for an application", "A class that contains only concrete methods", "An abstract type that is used to specify a behavior that classes must implement", "A way to connect two different computer systems"], answer: "An abstract type that is used to specify a behavior that classes must implement" },
+            { question: "What is the purpose of the `this` keyword in many programming languages?", options: ["To refer to the superclass of the current object", "To refer to the current instance of the class", "To create a new object", "To destroy the current object"], answer: "To refer to the current instance of the class" },
+            { question: "What is a subnet mask?", options: ["An address that hides the identity of a computer", "A password for a network", "A 32-bit number that separates an IP address into network and host portions", "A security feature of a firewall"], answer: "A 32-bit number that separates an IP address into network and host portions" },
+            { question: "What is multithreading?", options: ["Running multiple processes at the same time", "A technique that allows a CPU to execute multiple threads of execution concurrently within a single process", "Having multiple users on the same computer", "Connecting to multiple networks at once"], answer: "A technique that allows a CPU to execute multiple threads of execution concurrently within a single process" },
+        ];
+
+        let currentQuizType = 'pseudo';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let chartInstance = null;
+
+        // Timer variables
+        let timerInterval = null;
+        let timeRemaining = 60; // Default 60 seconds per question
+        let timerDuration = 60; // Configurable timer duration
+        let timerPaused = false;
+
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const pseudoTab = document.getElementById('pseudo-tab');
+        const itTab = document.getElementById('it-tab');
+        const retryBtn = document.getElementById('retry-btn');
+
+        // Timer functions
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            timeRemaining = timerDuration;
+            timerPaused = false;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                if (!timerPaused) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+
+                    if (timeRemaining <= 0) {
+                        handleTimerExpired();
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function pauseTimer() {
+            timerPaused = !timerPaused;
+            const pauseBtn = document.getElementById('pause-timer-btn');
+            if (pauseBtn) {
+                pauseBtn.textContent = timerPaused ? '▶️ Resume' : '⏸️ Pause';
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerDisplay = document.getElementById('timer-display');
+            const timerContainer = document.getElementById('timer-container');
+            const progressBar = document.getElementById('timer-progress-bar');
+
+            if (timerDisplay && timerContainer && progressBar) {
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Update progress bar
+                const progress = (timeRemaining / timerDuration) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                // Change timer color based on time remaining
+                timerContainer.classList.remove('timer-warning', 'timer-danger');
+                if (timeRemaining <= 10) {
+                    timerContainer.classList.add('timer-danger');
+                } else if (timeRemaining <= 20) {
+                    timerContainer.classList.add('timer-warning');
+                }
+            }
+        }
+
+        function handleTimerExpired() {
+            stopTimer();
+
+            // If no answer was selected, mark as unanswered
+            if (userAnswers[currentQuestionIndex] === null) {
+                userAnswers[currentQuestionIndex] = {
+                    selectedIndex: -1, // -1 indicates timeout/no answer
+                    correctIndex: currentQuestions[currentQuestionIndex].options.indexOf(currentQuestions[currentQuestionIndex].answer)
+                };
+
+                // Show the correct answer
+                const correctIndex = currentQuestions[currentQuestionIndex].options.indexOf(currentQuestions[currentQuestionIndex].answer);
+                document.querySelectorAll('.option-btn')[correctIndex].classList.add('correct');
+                document.getElementById('rationale-container').classList.remove('hidden');
+                document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+            }
+
+            // Auto-advance after a short delay
+            setTimeout(() => {
+                nextQuestion();
+            }, 2000);
+        }
+
+        function setTimerDuration(seconds) {
+            timerDuration = seconds;
+            if (timeRemaining > timerDuration) {
+                timeRemaining = timerDuration;
+                updateTimerDisplay();
+            }
+        }
+
+        function startQuiz(quizType) {
+            stopTimer(); // Stop any existing timer
+
+            currentQuizType = quizType;
+            currentQuestions = quizType === 'pseudo' ? pseudoCodeQuestions : itFundamentalsQuestions;
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = new Array(currentQuestions.length).fill(null);
+
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('tab-active', 'tab-inactive'));
+            if (quizType === 'pseudo') {
+                pseudoTab.classList.add('tab-active');
+                itTab.classList.add('tab-inactive');
+            } else {
+                itTab.classList.add('tab-active');
+                pseudoTab.classList.add('tab-inactive');
+            }
+
+            quizContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex >= currentQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const questionData = currentQuestions[currentQuestionIndex];
+            let codeBlock = '';
+            if (questionData.code) {
+                codeBlock = `<pre><code class="language-c">${questionData.code}</code></pre>`;
+            }
+
+            let rationaleText = "Pointer arithmetic on arrays results in the difference in terms of the number of elements, not the byte difference.";
+            if (currentQuizType === 'pseudo' && questionData.question.includes("factorial")) {
+                rationaleText = "The function recursively multiplies n with the factorial of n-1 until it reaches the base case of n=0.";
+            } else if (currentQuizType === 'it' && questionData.question.includes("OOP concept")) {
+                rationaleText = "Compilation is the process of converting source code to machine code; it is part of the development process, not an OOP principle itself.";
+            }
+
+            quizContainer.innerHTML = `
+        <div class="quiz-card p-6 md:p-8">
+            <div id="timer-container" class="timer-container">
+                <span class="timer-label">Time Remaining:</span>
+                <span id="timer-display" class="timer-display">01:00</span>
+                <div class="timer-controls">
+                    <button id="pause-timer-btn" class="timer-btn">⏸️ Pause</button>
+                    <select id="timer-duration-select" class="timer-btn" style="background: rgba(255,255,255,0.2); color: white;">
+                        <option value="30" style="color: black;">30s</option>
+                        <option value="60" selected style="color: black;">60s</option>
+                        <option value="90" style="color: black;">90s</option>
+                        <option value="120" style="color: black;">120s</option>
+                    </select>
+                </div>
+                <div class="timer-progress">
+                    <div id="timer-progress-bar" class="timer-progress-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+            <p class="text-gray-600 mb-4 font-semibold">Question ${currentQuestionIndex + 1} of ${currentQuestions.length}</p>
+            <h2 class="text-2xl font-bold mb-6">${questionData.question}</h2>
+            ${codeBlock}
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                ${questionData.options.map(option => `
+                    <button class="option-btn w-full text-left p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-indigo-500">
+                        ${option}
+                    </button>
+                `).join('')}
+            </div>
+            <div id="rationale-container" class="hidden rationale">${rationaleText}</div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" class="bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors" ${currentQuestionIndex === 0 ? 'disabled' : ''}>Previous</button>
+                <button id="next-btn" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Next</button>
+            </div>
+        </div>
+    `;
+
+            document.querySelectorAll('.option-btn').forEach((btn, index) => {
+                btn.addEventListener('click', () => selectAnswer(btn, index));
             });
 
-            const navLinks = document.querySelectorAll('.nav-link, #mobile-menu a');
-            const sections = document.querySelectorAll('section');
+            document.getElementById('next-btn').addEventListener('click', nextQuestion);
+            document.getElementById('prev-btn').addEventListener('click', prevQuestion);
 
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.5
+            // Timer controls
+            document.getElementById('pause-timer-btn').addEventListener('click', pauseTimer);
+            document.getElementById('timer-duration-select').addEventListener('change', (e) => {
+                setTimerDuration(parseInt(e.target.value));
+            });
+
+            if (userAnswers[currentQuestionIndex] !== null) {
+                showPreviousAnswer();
+                stopTimer(); // Don't run timer for already answered questions
+            } else {
+                startTimer(); // Start timer for new questions
+            }
+        }
+
+        function selectAnswer(button, selectedIndex) {
+            if (userAnswers[currentQuestionIndex] !== null) return;
+
+            stopTimer(); // Stop the timer when answer is selected
+
+            const questionData = currentQuestions[currentQuestionIndex];
+            const correctIndex = questionData.options.indexOf(questionData.answer);
+
+            userAnswers[currentQuestionIndex] = {
+                selectedIndex: selectedIndex,
+                correctIndex: correctIndex
             };
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const id = entry.target.getAttribute('id');
-                        navLinks.forEach(link => {
-                            link.classList.remove('active-link');
-                            if (link.getAttribute('href') === `#${id}`) {
-                                link.classList.add('active-link');
+            if (selectedIndex === correctIndex) {
+                score++;
+                button.classList.add('correct');
+            } else {
+                button.classList.add('incorrect');
+                document.querySelectorAll('.option-btn')[correctIndex].classList.add('correct');
+            }
+
+            document.getElementById('rationale-container').classList.remove('hidden');
+            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+        }
+
+        function showPreviousAnswer() {
+            const { selectedIndex, correctIndex } = userAnswers[currentQuestionIndex];
+            const optionButtons = document.querySelectorAll('.option-btn');
+
+            if (selectedIndex === correctIndex) {
+                optionButtons[selectedIndex].classList.add('correct');
+            } else {
+                optionButtons[selectedIndex].classList.add('incorrect');
+                optionButtons[correctIndex].classList.add('correct');
+            }
+
+            document.getElementById('rationale-container').classList.remove('hidden');
+            optionButtons.forEach(btn => btn.disabled = true);
+        }
+
+
+        function nextQuestion() {
+            stopTimer();
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function prevQuestion() {
+            stopTimer();
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function showResults() {
+            stopTimer(); // Make sure timer is stopped
+
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+
+            const percentage = ((score / currentQuestions.length) * 100).toFixed(2);
+            document.getElementById('results-title').innerText = `${currentQuizType === 'pseudo' ? 'Pseudo Code' : 'IT Fundamentals'} Results`;
+            document.getElementById('results-summary').innerText = `You answered ${score} out of ${currentQuestions.length} questions correctly. (${percentage}%)`;
+
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct', 'Incorrect'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [score, currentQuestions.length - score],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(239, 68, 68, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(5, 150, 105, 1)',
+                            'rgba(220, 38, 38, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
                             }
-                        });
-                    }
-                });
-            }, observerOptions);
-
-            sections.forEach(section => {
-                observer.observe(section);
-            });
-            
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelector(link.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                    if (mobileMenu.classList.contains('hidden') === false) {
-                        mobileMenu.classList.add('hidden');
-                    }
-                });
-            });
-
-            const loopNodes = document.querySelectorAll('.loop-node');
-            loopNodes.forEach(node => {
-                node.addEventListener('mouseenter', () => {
-                    node.style.borderColor = '#FF6B6B';
-                    node.style.transform = 'scale(1.05)';
-                });
-                node.addEventListener('mouseleave', () => {
-                    node.style.borderColor = '#E5E7EB';
-                    node.style.transform = 'scale(1)';
-                });
-            });
-            
-            function typeDecisionLog() {
-                const logElement = document.getElementById('decision-log');
-                const logText = [
-                    "10:00:01Z STATUS: Nominal trajectory active. All systems green.",
-                    "10:15:22Z ALERT: Hazard detected. Source: NASA DONKI. Type: Solar Flare (FLR).",
-                    "10:15:25Z ANALYSIS: Flare Class X1.2 detected. CME poses significant radiation risk.",
-                    "10:15:26Z ANALYSIS: Projected dose on current trajectory: +9.8 rem/hr. Threshold exceeded.",
-                    "10:15:30Z CONSULT: Prompting Generative Co-Pilot for mitigation options...",
-                    "10:16:05Z OPTIONS RECEIVED: [Delay Burn, Lunar Shadow, Polar Escape].",
-                    "10:16:10Z EVALUATION: Computing mission trade-offs for all options...",
-                    "10:17:00Z DECISION: Selected 'Lunar Shadow Trajectory'. Optimal balance of safety, fuel, and time.",
-                    "10:17:05Z EXECUTE: Rerouting complete. New trajectory locked and active."
-                ];
-                let lineIndex = 0;
-                let charIndex = 0;
-                logElement.innerHTML = '';
-
-                function type() {
-                    if (lineIndex < logText.length) {
-                        if (charIndex < logText[lineIndex].length) {
-                            logElement.innerHTML += logText[lineIndex].charAt(charIndex);
-                            charIndex++;
-                            setTimeout(type, 20);
-                        } else {
-                            logElement.innerHTML += '<br>';
-                            lineIndex++;
-                            charIndex = 0;
-                            logElement.scrollTop = logElement.scrollHeight;
-                            setTimeout(type, 500);
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     }
                 }
-                type();
-            }
+            });
+        }
 
-            function createTradeoffChart() {
-                const ctx = document.getElementById('tradeoffChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Nominal Path', 'Delay Burn', 'Lunar Shadow', 'Polar Escape'],
-                        datasets: [{
-                            label: 'Travel Time Increase (Hours)',
-                            data: [0, 12, 6.5, 8],
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        }, {
-                            label: 'ΔV Cost (m/s)',
-                            data: [0, 5, 45, 110],
-                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                            borderColor: 'rgba(255, 159, 64, 1)',
-                            borderWidth: 1
-                        }, {
-                            label: 'Safety Margin (%)',
-                            data: [-98, 70, 99, 99],
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + (this.chart.data.datasets[2].label.includes('Safety') ? '%' : '');
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            label += context.parsed.y;
-                                            if(context.datasetIndex === 0) label += ' hrs';
-                                            if(context.datasetIndex === 1) label += ' m/s';
-                                            if(context.datasetIndex === 2) label += '%';
-                                        }
-                                        return label;
-                                    }
-                                }
-                            },
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: false,
-                            }
-                        }
-                    }
-                });
-            }
+        pseudoTab.addEventListener('click', () => startQuiz('pseudo'));
+        itTab.addEventListener('click', () => startQuiz('it'));
+        retryBtn.addEventListener('click', () => startQuiz(currentQuizType));
 
-            function createTrajectoryPlot() {
-                const plotDiv = document.getElementById('trajectoryPlot');
-                
-                const earthTrace = {
-                    x: [0], y: [0], z: [0],
-                    mode: 'markers',
-                    marker: {
-                        color: 'blue',
-                        size: 12,
-                        symbol: 'circle'
-                    },
-                    name: 'Earth',
-                    type: 'scatter3d'
-                };
+        // Initial load
+        startQuiz('pseudo');
 
-                const moonTrace = {
-                    x: [384400], y: [0], z: [0],
-                    mode: 'markers',
-                    marker: {
-                        color: 'grey',
-                        size: 8,
-                        symbol: 'circle'
-                    },
-                    name: 'Moon',
-                    type: 'scatter3d'
-                };
-
-                function generateArc(radius, start, end, steps) {
-                    const x = [], y = [], z = [];
-                    for (let i = 0; i <= steps; i++) {
-                        const theta = start + (end - start) * i / steps;
-                        x.push(radius * Math.cos(theta));
-                        y.push(radius * Math.sin(theta));
-                        z.push(0);
-                    }
-                    return {x, y, z};
-                }
-
-                const nominalPath = generateArc(192200, 0, Math.PI, 100);
-                nominalPath.x = nominalPath.x.map(val => val + 192200);
-
-                const nominalTrace = {
-                    ...nominalPath,
-                    mode: 'lines',
-                    line: {
-                        color: 'red',
-                        width: 4,
-                        dash: 'dash'
-                    },
-                    name: 'Hazardous Trajectory',
-                    type: 'scatter3d'
-                };
-                
-                const safePath = generateArc(220000, 0, Math.PI, 100);
-                safePath.x = safePath.x.map(val => val + 192200);
-                safePath.z = safePath.y.map(val => val * 0.5); 
-
-                const safeTrace = {
-                    ...safePath,
-                    mode: 'lines',
-                    line: {
-                        color: 'green',
-                        width: 6
-                    },
-                    name: 'Safe Trajectory',
-                    type: 'scatter3d'
-                };
-
-                const layout = {
-                    title: 'Trajectory Replan',
-                    showlegend: true,
-                    margin: { l: 0, r: 0, b: 0, t: 40 },
-                    scene: {
-                        xaxis: { title: 'X (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
-                        yaxis: { title: 'Y (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
-                        zaxis: { title: 'Z (km)', showgrid: false, zeroline: false, showticklabels: false, titlefont: {size: 10} },
-                        camera: {
-                            eye: {x: 1.5, y: 1.5, z: 1.5}
-                        },
-                        aspectmode: 'data'
-                    },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)'
-                };
-
-                Plotly.newPlot(plotDiv, [earthTrace, moonTrace, nominalTrace, safeTrace], layout, {responsive: true});
-            }
-
-            const simulationObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        typeDecisionLog();
-                        createTradeoffChart();
-                        createTrajectoryPlot();
-                        simulationObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            simulationObserver.observe(document.getElementById('simulation'));
-        });
     </script>
 </body>
+
 </html>
